@@ -15,17 +15,13 @@ def check_can_move(pyr1, pyr2, i, j ):
 
 
     #print("Attempting move", [i, j])
-    print("Pyr1 top", pyr1_top)
-    print("Pyr2 top", pyr2_top)
 
     if pyr1_top > pyr2_top and pyr2_top != 0:
         return False #can't move bigger to smaller
 
     if pyr1_top != 0 and pyr2_top != 0:
         if (pyr1_top % 2 == 0 and pyr2_top % 2 == 0) or (pyr1_top % 2 != 0 and pyr2_top % 2 != 0):
-            print("even or even or odd on odd!")
             return False #can't move even on even, odd on odd
-    print("possible!")
     prv_reversed = list(prev_move)
     prv_reversed.reverse()
     if [x-1 for x in prv_reversed] == [i, j]:
@@ -59,7 +55,6 @@ def AI(game):
         for j in range(len(game.pyramids)):
             if i == j:
                 continue
-            print('Checking move', [i+1, j+1])
             if check_can_move(game.pyramids[i], game.pyramids[j], i, j):
                 possible_moves.append([i+1, j+1])
 
