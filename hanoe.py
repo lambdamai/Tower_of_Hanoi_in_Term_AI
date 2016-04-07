@@ -1,10 +1,10 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 
-import re, copy, sys
+import re, copy, sys, curses
 import AI
 
-
 #Вместо len лучше было бы вставить hoops_number
+
 class stack_pyramid(list):
     def __init__(self, arr = []):
         self.hoops_number = len(arr)
@@ -37,10 +37,10 @@ class stack_pyramid(list):
         
 class Game:
 
-    mov_cmd = re.compile('\d+')
+    #high_cmd = re.compile('\d+')
     
     def __init__(self, ai = None, who = "Player", lvl = 5, istream = input, ostream = print):
-        self.status = "Runing"
+        self.status = "Running"
         self.who = who
         self.istream = istream
         self.ai = ai
@@ -54,55 +54,124 @@ class Game:
             stack_pyramid()
         ]
         self.win_combination = arr
+        if self.who != "AI":
+            self.screen = curses.initscr()
+        self.highlighted = -1;
+    
+    def init(self):
+        if self.who != "AI":
+            curses.noecho()
+            curses.cbreak()
+            self.screen.keypad(True)
+            self.draw()
+        try:
+            self.process()
+        except (Exception, KeyboardInterrupt) as e:
+            if self.who != "AI":
+                self.screen.clear()
+                curses.nocbreak()
+                self.screen.keypad(False)
+                curses.echo()
+                curses.endwin()
+            raise e
     
     def process(self):
         #(user_input[0] != "exit"  or user_input[0] != "e") and
-        while( self.status == "Runing"):
+        while( self.status == "Running"):
+            pyr_num = 0
             if self.who == "Player":
-                moves = self.istream().lower()
-                moves = re.findall(Game.mov_cmd, moves)
-                if len(moves) < 2: continue
-                for i in range(len(moves)): moves[i] = int(moves[i])
+                pyr_num = self.screen.getch() - 48
+                #try: pyr_num = int(pyr_num)
+                #except: continue
+                if pyr_num < 1 or pyr_num > 3: continue
+                if self.highlighted == -1:
+                    self.highlighted = pyr_num
+                    continue
             elif self.who == "AI":
                 if self.count > 1000:
                     self.status = "Stopped"
                     print ("AI FAILED (TO MANY MOVES)")
-                moves = self.ai(self)
-            else: break
+                move = self.ai(copy.deepcopy(self.pyramids))
+                if(  move[0] >= 1 and move[0] <= 3 ) and ( move[1] >= 1 and move[1] <= 3 ):
+                    self.highlighted = move[0]
+                    pyr_num = move[1]
+                else:
+                    self.status = "Stopped"
+                    self.situation()
+                    raise Exception("AI FAILED (FORBIDDEN MOVE)")
+            else:
+                self.status = "Stopped"
+                raise Exception("WRONG PLAYER TYPE")
+            from_ = self.highlighted-1
+            to_ = pyr_num-1
+            self.highlighted = -1
+            try:
+                self.pyramids[to_].push( self.pyramids[from_][-1] )
+                self.pyramids[from_].pop()
+                self.count+=1
+            except:
+                if self.who == "AI":
+                    self.status = "Stopped"
+                    self.situation()
+                    raise Exception("AI FAILED (FORBIDDEN MOVE)")
+            self.situation()
+            '''else: break
             if(  moves[0] > 0 and moves[0] < 4 ) and ( moves[1] > 0 and moves[1] < 4 ):
                 self.count+=1
                 from_ = moves[0]-1
                 to_ = moves[1]-1
             else:
-                print("WRONG MOVE")
-            try:
-                self.pyramids[to_].push( self.pyramids[from_][-1] )
-                self.pyramids[from_].pop()
-            except:
-                if self.who == "AI":
-                    self.status = "Stopped"
-                    print ("AI FAILED (FORBIDDEN MOVE)")
-            self.situation()
-    def draw(self):
-        print ("COUNT: " + str(self.count) )
-        print ("| "*3)
-        for g in range(self.lvl):
-            for pyramid in self.pyramids:
-                try:
-                    print( str(pyramid[self.lvl-g-1]), end=" " )
-                except IndexError:
-                    print("|", end=" ")
-            print()
+                print("WRONG MOVE")'''
+    def draw(self, highlighted = -1):
+        if self.who != "AI":
+            self.screen.clear()
+            self.screen.border(0)
+        if self.status == "Running":
+            if self.who != "AI": 
+                self.screen.addstr(3,3,"COUNT: " + str(self.count))
+                self.screen.addstr(4,3,"| "*3)
+            else: 
+                print("COUNT: " + str(self.count))
+                print("| "*3)
+            for g in range(self.lvl):
+                st = ""
+                for pyramid in self.pyramids:
+                    try:
+                        st += str(pyramid[self.lvl-g-1]) + " "
+                    except IndexError:
+                        st += "| "
+                if self.who != "AI": 
+                    self.screen.addstr(5+g,3, st)
+                else:
+                    print(st)
+        elif self.status == "Stopped":
+            if self.who != "AI": self.screen.addstr(3,3,self.status)
+            else: print(self.status)
+        elif self.status == "Win":
+            if self.who != "AI": self.screen.addstr(3,3,"YOU WIN!")
+            else: print("YOU WIN")
+        else: 
+            if self.who != "AI": self.screen.addstr(3,3,"UNKNOWN STATUS")
+            else: print("UNKNOWN STATUS")
+        if self.who != "AI": self.screen.refresh()
     def situation(self):
         #self.count+=1
-        self.draw()
         if self.pyramids[2] == self.win_combination:
             self.status = "Win"
-            print ("YOU WIN")
-            
+            #print("YOU WIN")
+        self.draw()
+  
+def main():
+    game = Game()
+    game.init()
+    #game.draw()
+    #game.process()
     
-if __name__ == "__main__":
-    if '--help' in sys.argv:
+def ai_mode():
+    game = Game(who = "AI", ai = AI.AI)
+    game.init()
+    
+def help():
         print(u"\nПРАВИЛА:")
         print(u"Подробнее тут - https://ru.wikipedia.org/wiki/Ханойская_башня")
         print(u"Если вкратце, то нам даны 3 стержня, на первом из которых расположены N элементов")
@@ -117,16 +186,18 @@ if __name__ == "__main__":
         print(u"ПРИМЕР:")
         print(u"return [1, 2] - снять элемент из первой пирамиды и положить на вторую\n")
         print(u"Используйте следующие методы:")
-        print(u"game.pyramids[N].get_top() - вернуть верхний элемент N-ой пирамиды")
-        print(u"game.pyramids[N].get_all() (или просто game.pyramids[N]) - вернуть список всех элементов N-ой пирамиды")
-        print(u"game.pyramids[N].get_len() - вернуть количество элементов в N-ой пирамиде\n")
+        print(u"pyramids[N].get_top() - вернуть верхний элемент N-ой пирамиды")
+        print(u"pyramids[N].get_all() (или просто game.pyramids[N]) - вернуть список всех элементов N-ой пирамиды")
+        print(u"pyramids[N].get_len() - вернуть количество элементов в N-ой пирамиде\n")
         print(u"ВНИМАНИЕ!\n")
         print(u"N - номер пирамиды МИНУС один. Помните, что вы обращаетесь к списку :)")
         print(u"Если вы хотите получить информацию о первой пирамиде, то N = 0\n")
         print(u"УДАЧИ!\n")
-        exit()
+    
+    
+if __name__ == "__main__":
+    if '--help' in sys.argv:
+        help()
     elif '--ai' in sys.argv:
-        game = Game(who = "AI", ai = AI.AI)
-    else: game = Game()
-    game.draw()
-    game.process()
+        ai_mode()
+    else: main()
