@@ -1,15 +1,9 @@
-﻿#/usr/bin/env python3
+﻿#!/usr/bin/env python3
 
-import re, copy, sys, curses
+import re, copy, sys
 import AI
 
-'''
-myscreen = curses.initscr()
-myscreen.border(0)
-myscreen.refresh()
-myscreen.getch()
-curses.endwin()
-'''
+
 #Вместо len лучше было бы вставить hoops_number
 class stack_pyramid(list):
     def __init__(self, arr = []):
