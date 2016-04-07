@@ -1,6 +1,6 @@
 ﻿#/usr/bin/env python3
 
-import re, copy, sys, curses
+import re, copy, sys
 import AI
 
 '''
