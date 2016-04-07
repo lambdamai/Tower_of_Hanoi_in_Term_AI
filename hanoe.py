@@ -74,6 +74,13 @@ class Game:
                 curses.echo()
                 curses.endwin()
             raise e
+        if self.who != "AI":
+            self.screen.getch()
+            self.screen.clear()
+            curses.nocbreak()
+            self.screen.keypad(False)
+            curses.echo()
+            curses.endwin()
     
     def process(self):
         #(user_input[0] != "exit"  or user_input[0] != "e") and
