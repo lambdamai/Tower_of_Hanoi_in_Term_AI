@@ -1,8 +1,18 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 
-import re, copy, sys
+import re, copy, sys, threading
 import AI
 
+class StoppableThread(threading.Thread):
+    def __init__(self, trg, argv):
+        super(StoppableThread, self).__init__(target=trg, args=argv)
+        self._stop = threading.Event()
+
+    def stop(self):
+        self._stop.set()
+
+    def stopped(self):
+        return self._stop.isSet()
 
 #Вместо len лучше было бы вставить hoops_number
 class stack_pyramid(list):
@@ -39,7 +49,7 @@ class Game:
 
     mov_cmd = re.compile('\d+')
     
-    def __init__(self, ai = None, who = "Player", lvl = 5, istream = input, ostream = print):
+    def __init__(self, ai = None, who = "Player", lvl = 5, istream = input, ostream = print, web = True):
         self.status = "Runing"
         self.who = who
         self.istream = istream
@@ -53,10 +63,37 @@ class Game:
             stack_pyramid(), 
             stack_pyramid()
         ]
+        self.web = web
+        self.flask_thread = None
         self.win_combination = arr
+
+    def run(self):
+        try:
+            self.situation()
+            self.process()
+        except KeyboardInterrupt:
+            if self.web and self.flask_thread:
+                self.flask_thread.stop()
+                while not(self.flask_thread.stopped()): pass
+        except Exception as e:
+            if self.web and self.flask_thread:
+                self.flask_thread.stop()
+                while not(self.flask_thread.stopped()): pass
+            raise e
     
     def process(self):
         #(user_input[0] != "exit"  or user_input[0] != "e") and
+        
+        def create_app(g):
+            import webserver, logging
+            log = logging.getLogger('werkzeug')
+            log.setLevel(logging.ERROR)
+            webserver.run(g)
+            
+        if self.web:
+            self.flask_thread = StoppableThread(create_app,(self,))
+            self.flask_thread.start()
+        
         while( self.status == "Runing"):
             if self.who == "Player":
                 moves = self.istream().lower()
@@ -102,6 +139,7 @@ class Game:
             
     
 if __name__ == "__main__":
+    w = '--web' in sys.argv or '-w' in sys.argv
     if '--help' in sys.argv:
         print(u"\nПРАВИЛА:")
         print(u"Подробнее тут - https://ru.wikipedia.org/wiki/Ханойская_башня")
@@ -127,6 +165,5 @@ if __name__ == "__main__":
         exit()
     elif '--ai' in sys.argv:
         game = Game(who = "AI", ai = AI.AI)
-    else: game = Game()
-    game.draw()
-    game.process()
+    else: game = Game(web = w)
+    game.run()
