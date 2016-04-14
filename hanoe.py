@@ -1,7 +1,10 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 
 import re, copy, sys
 import AI
+import os
+import os.path
+import time
 
 
 #Вместо len лучше было бы вставить hoops_number
@@ -39,12 +42,13 @@ class Game:
 
     mov_cmd = re.compile('\d+')
     
-    def __init__(self, ai = None, who = "Player", lvl = 5, istream = input, ostream = print):
+    def __init__(self, ai = None, who = "Player", lvl = 5, istream = input, ostream = print, delay = 0):
         self.status = "Runing"
         self.who = who
         self.istream = istream
         self.ai = ai
         self.lvl = lvl
+        self.delay = delay
         self.count = 0
         arr = list(range(lvl+1))[1:]
         arr.reverse()
@@ -55,6 +59,7 @@ class Game:
         ]
         self.win_combination = arr
     
+
     def process(self):
         #(user_input[0] != "exit"  or user_input[0] != "e") and
         while( self.status == "Runing"):
@@ -84,6 +89,8 @@ class Game:
                     print ("AI FAILED (FORBIDDEN MOVE)")
             self.situation()
     def draw(self):
+        os.system('cls')
+        
         print ("COUNT: " + str(self.count) )
         print ("| "*3)
         for g in range(self.lvl):
@@ -93,14 +100,16 @@ class Game:
                 except IndexError:
                     print("|", end=" ")
             print()
+        time.sleep(self.delay)
     def situation(self):
         #self.count+=1
         self.draw()
-        if self.pyramids[2] == self.win_combination:
-            self.status = "Win"
-            print ("YOU WIN")
+        for i in range(1,len(self.pyramids)):
+            if self.pyramids[i] == self.win_combination:
+                self.status = "Win"
+                print ("YOU WIN")
             
-    
+
 if __name__ == "__main__":
     if '--help' in sys.argv:
         print(u"\nПРАВИЛА:")
@@ -125,8 +134,14 @@ if __name__ == "__main__":
         print(u"Если вы хотите получить информацию о первой пирамиде, то N = 0\n")
         print(u"УДАЧИ!\n")
         exit()
+
     elif '--ai' in sys.argv:
-        game = Game(who = "AI", ai = AI.AI)
+        if  '--delay' in sys.argv:
+            #if sys.argv[2].isdigit():
+                delay = int(sys.argv[3])
+                game = Game(who = "AI", ai = AI.AI, delay=delay)
+        else: game = Game(who = "AI", ai = AI.AI)
+    
     else: game = Game()
     game.draw()
     game.process()
