@@ -1,6 +1,6 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 
-import re, copy, sys
+import re, copy, sys, random
 import AI
 
 
@@ -39,20 +39,19 @@ class Game:
 
     mov_cmd = re.compile('\d+')
     
-    def __init__(self, ai = None, who = "Player", lvl = 5, istream = input, ostream = print):
+    def __init__(self, ai = None, who = "Player", rod = 3, istream = input, ostream = print):
         self.status = "Runing"
         self.who = who
         self.istream = istream
         self.ai = ai
-        self.lvl = lvl
+        self.lvl = rod + 2
+        self.rod = rod
         self.count = 0
-        arr = list(range(lvl+1))[1:]
+        arr = list(range(self.lvl+1))[1:]
         arr.reverse()
-        self.pyramids = [
-            stack_pyramid( copy.copy(arr) ),
-            stack_pyramid(), 
-            stack_pyramid()
-        ]
+        self.pyramids = [stack_pyramid( copy.copy(arr) )]
+        for i in range(1, rod):
+            self.pyramids.append(stack_pyramid())
         self.win_combination = arr
     
     def process(self):
@@ -69,7 +68,7 @@ class Game:
                     print ("AI FAILED (TO MANY MOVES)")
                 moves = self.ai(self)
             else: break
-            if(  moves[0] > 0 and moves[0] < 4 ) and ( moves[1] > 0 and moves[1] < 4 ):
+            if(  moves[0] > 0 and moves[0] < self.lvl ) and ( moves[1] > 0 and moves[1] < self.lvl ):
                 self.count+=1
                 from_ = moves[0]-1
                 to_ = moves[1]-1
@@ -85,7 +84,7 @@ class Game:
             self.situation()
     def draw(self):
         print ("COUNT: " + str(self.count) )
-        print ("| "*3)
+        print ("| "*self.rod)
         for g in range(self.lvl):
             for pyramid in self.pyramids:
                 try:
@@ -96,9 +95,10 @@ class Game:
     def situation(self):
         #self.count+=1
         self.draw()
-        if self.pyramids[2] == self.win_combination:
-            self.status = "Win"
-            print ("YOU WIN")
+        for i in range(1, len(self.pyramids)):
+            if self.pyramids[i] == self.win_combination:
+                self.status = "Win"
+                print ("YOU WIN")
             
     
 if __name__ == "__main__":
@@ -127,6 +127,19 @@ if __name__ == "__main__":
         exit()
     elif '--ai' in sys.argv:
         game = Game(who = "AI", ai = AI.AI)
+    elif '--amount' in sys.argv:
+        count = 0
+        for i in sys.argv:
+            count = re.findall(Game.mov_cmd, i)
+            if count:
+                if int(count[0]) < 3 or int(count[0]) > 10:
+                    raise NameError('Invalid Number')
+                else:game = Game(rod = int(count[0]))
+                break
+    elif '--random' in sys.argv:
+        random.seed()
+        count = random.randint(3, 10)
+        game = Game(who = "AI", ai = AI.AI, rod = count)
     else: game = Game()
     game.draw()
     game.process()
