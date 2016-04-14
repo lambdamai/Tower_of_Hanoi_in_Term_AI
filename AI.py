@@ -58,8 +58,8 @@ def AI(game):
             if check_can_move(game.pyramids[i], game.pyramids[j], i, j):
                 possible_moves.append([i+1, j+1])
 
-    for move in possible_moves:
-        print(str(move))
+    # for move in possible_moves:
+    #     print(str(move))
 
     prev_move = list(possible_moves[0])
     return possible_moves[0]
