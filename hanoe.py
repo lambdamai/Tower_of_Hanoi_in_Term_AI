@@ -206,7 +206,7 @@ def help_text():
         "--ai to enable AI moves",
         "-d, --delay <MILISECONDS> to enable delay between moves in MS",
         "-w, --web to enable HTML/JS visualization at localhost:5000 (by default)",
-        "-a, --amount <NUMBER> to set amount of sticks",
+        "--amount <NUMBER> to set amount of sticks",
         "--random to create game with random amount of sticks"
     ]
     return '\n'.join(lines)
