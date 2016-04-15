@@ -9,6 +9,7 @@ import os
 import os.path
 import time
 import getopt
+import random
 
 
 class StoppableThread(threading.Thread):
@@ -80,7 +81,7 @@ class Game:
         arr = list(range(self.lvl+1))[1:]
         arr.reverse()
         self.pyramids = [stack_pyramid(copy.copy(arr))]
-        for i in range(1, rod):
+        for i in range(1, amount):
             self.pyramids.append(stack_pyramid())
         self.win_combination = arr
         self.web = web
@@ -205,7 +206,8 @@ def help_text():
         "--ai to enable AI moves",
         "-d, --delay <MILISECONDS> to enable delay between moves in MS",
         "-w, --web to enable HTML/JS visualization at localhost:5000 (by default)",
-        "-a, --amount <NUMBER> to set amount of sticks"
+        "-a, --amount <NUMBER> to set amount of sticks",
+        "--random to create game with random amount of sticks"
     ]
     return '\n'.join(lines)
 
@@ -213,7 +215,7 @@ def help_text():
 def main(argv):
     try:
         opts, args = getopt.getopt(
-            argv, "hrlwd:", ["help", "rules", "ai", "log", "web", "delay=", "amount="])
+            argv, "hrlwd:", ["help", "rules", "ai", "log", "web", "delay=", "amount=", "random"])
     except getopt.GetoptError:
         print(help_text())
         sys.exit(2)
@@ -242,9 +244,12 @@ def main(argv):
             delay = int(arg)
         elif opt in ("-a", "--amount"):
             if int(arg) < 3 or int(arg) > 10:
-                raise NameError('Invalid NUMBER')
+                raise NameError('Invalid number')
             else:
-                rod = int(arg)
+                amount = int(arg)
+        elif opt in ("--random"):
+            random.seed()
+            amount = random.randint(3, 10)
 
     game = Game(who=who, ai=ai, log=log, delay=delay, web=web, amount=amount)
     game.run()
