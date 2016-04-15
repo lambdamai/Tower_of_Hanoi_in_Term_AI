@@ -225,7 +225,7 @@ def main(argv):
     log = 0
     web = False
     delay = 0
-    rod = 3
+    amount = 3
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             print(help_text())
