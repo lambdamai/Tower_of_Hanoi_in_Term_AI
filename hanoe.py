@@ -10,6 +10,7 @@ import os.path
 import time
 import getopt
 import random
+from help import rules_text, help_text
 
 
 class StoppableThread(threading.Thread):
@@ -168,48 +169,6 @@ class Game:
             if self.pyramids[i] == self.win_combination:
                 self.status = "Win"
                 print("YOU WIN")
-
-
-def rules_text():
-    lines = [
-        u"\nПРАВИЛА:",
-        u"Подробнее тут - https://ru.wikipedia.org/wiki/Ханойская_башня",
-        u"Если вкратце, то нам даны 3 стержня, на первом из которых расположены N элементов",
-        u"(В оригинале эти элементы - кольца разного диаметра, в нашем случае это числа, в порядке убывания снизу вверх.",
-        u"Тоесть наменьшее кольцо расположено на вершине башни, а наибольшее лежит в основании, в самом низу.",
-        u"Цель - переместить башню с первого стержня на заданный (либо на второй, либо на третий, либо на любой из них,",
-        u"Причём можно снимать только один, верхний элемент с башни и класть его либо на пустой стержень,",
-        u"либо на элемент большего размера. Тоесть 1 на 2 положить можно, а вот 2 на 1 - нет.\n",
-        u"Основная информация:",
-        u"Используй флаг --ai для того, чтобы играл ваш ИИ (для игры используется файл AI.py,",
-        u"Чтобы ИИ сделал ход, верните в файле AI.py список из двух элементов - откуда куда соответсвенно",
-        u"ПРИМЕР:",
-        u"return [1, 2] - снять элемент из первой пирамиды и положить на вторую\n",
-        u"Используйте следующие методы:",
-        u"game.pyramids[N].get_top(, - вернуть верхний элемент N-ой пирамиды",
-        u"game.pyramids[N].get_all(, (или просто game.pyramids[N], - вернуть список всех элементов N-ой пирамиды",
-        u"game.pyramids[N].get_len(, - вернуть количество элементов в N-ой пирамиде\n",
-        u"ВНИМАНИЕ!\n",
-        u"N - номер пирамиды МИНУС один. Помните, что вы обращаетесь к списку :,",
-        u"Если вы хотите получить информацию о первой пирамиде, то N = 0\n",
-        u"УДАЧИ!\n"
-    ]
-    return '\n'.join(lines)
-
-
-def help_text():
-    lines = [
-        "Command arguments:",
-        "-h, --help to display help",
-        "-r, --rules to display rules",
-        "-l, --log to log turns to file",
-        "--ai to enable AI moves",
-        "-d, --delay <MILISECONDS> to enable delay between moves in MS",
-        "-w, --web to enable HTML/JS visualization at localhost:5000 (by default)",
-        "--amount <NUMBER> to set amount of sticks",
-        "--random to create game with random amount of sticks"
-    ]
-    return '\n'.join(lines)
 
 
 def main(argv):
