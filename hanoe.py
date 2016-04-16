@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 
-import re
-import copy
-import sys
-import threading
 import AI
-import os
-import os.path
-import time
-import getopt
-import random
-from help import rules_text, help_text
+import re, copy, sys
+import threading
+import os, os.path
+import time, getopt, random
+from help import *
 
 
 class StoppableThread(threading.Thread):
@@ -105,13 +100,10 @@ class Game:
             webserver.run(g)
 
         if self.web:
-            # self.flask_thread = #StoppableThread(create_app,(self,))
             self.flask_thread = StoppableThread(create_app, (self,))
             self.flask_thread.daemon = True
-            #print("Starting flask thread")
             self.flask_thread.start()
 
-        #(user_input[0] != "exit"  or user_input[0] != "e") and
         if (self.log == 1):
             f = open('log.txt', 'w')
         while(self.status == "Runing"):
@@ -172,6 +164,9 @@ class Game:
 
 
 def main(argv):
+    # TODO make this import less ugly
+    from settings import who, ai, log, web, delay, amount
+
     try:
         opts, args = getopt.getopt(
             argv, "hrlwd:", ["help", "rules", "ai", "log", "web", "delay=", "amount=", "random"])
@@ -179,12 +174,7 @@ def main(argv):
         print(help_text())
         sys.exit(2)
 
-    who = "Player"
-    ai = None
-    log = 0
-    web = False
-    delay = 0
-    amount = 3
+    
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             print(help_text())
