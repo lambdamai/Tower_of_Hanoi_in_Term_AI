@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 import sys
 from flask import app, jsonify, Flask
-import threading
-import time
-
-import requests
-from threading import Timer
 
 app = Flask(__name__)
 game = None
